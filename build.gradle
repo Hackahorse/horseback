@@ -17,6 +17,7 @@ repositories {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation group: 'org.json', name: 'json', version: '20160810'
     implementation "org.tokend:sdk:3.6.1"
     implementation "org.tokend:wallet:3.6.5"
     implementation "org.tokend:rx-sdk:2.3.0"

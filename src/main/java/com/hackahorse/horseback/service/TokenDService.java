@@ -1,11 +1,13 @@
 package com.hackahorse.horseback.service;
 
 import com.hackahorse.horseback.util.PropsLoader;
+import org.json.JSONObject;
 import org.tokend.sdk.api.TokenDApi;
-import org.tokend.sdk.api.generated.resources.OfferResource;
+import org.tokend.sdk.api.generated.resources.BalanceResource;
+import org.tokend.sdk.api.integrations.marketplace.MarketplaceApi;
+import org.tokend.sdk.api.integrations.marketplace.model.MarketplaceOfferResource;
+import org.tokend.sdk.api.integrations.marketplace.params.MarketplaceOffersPageParams;
 import org.tokend.sdk.api.v3.TokenDApiV3;
-import org.tokend.sdk.api.v3.assets.params.AssetsPageParams;
-import org.tokend.sdk.api.v3.offers.params.OffersPageParamsV3;
 import org.tokend.sdk.api.v3.signers.params.SignerRolesPageParamsV3;
 import org.tokend.sdk.keyserver.KeyServer;
 import org.tokend.sdk.keyserver.models.WalletCreateResult;
@@ -14,7 +16,6 @@ import org.tokend.wallet.Account;
 import org.tokend.wallet.Base32Check;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Properties;
@@ -27,6 +28,7 @@ public class TokenDService {
 
     private static Properties prop;
     private static KeyServer keyServer;
+    private static TokenDApi api;
     private static TokenDApiV3 v3api;
 
     private static Account defaultSignerRole;
@@ -43,7 +45,7 @@ public class TokenDService {
             );
             log.log(Level.INFO, "Default signer role created...");
             accountRequestSigner = new AccountRequestSigner(defaultSignerRole);
-            TokenDApi api = new TokenDApi(prop.getProperty("tokend_base_url"), accountRequestSigner);
+            api = new TokenDApi(prop.getProperty("tokend_base_url"), accountRequestSigner);
             v3api = api.getV3();
             log.log(Level.INFO, v3api.getSigners().getRoles(new SignerRolesPageParamsV3()).execute().get().getItems().toArray().toString());
             log.log(Level.INFO, "TokenD connection established...");
@@ -54,9 +56,18 @@ public class TokenDService {
         }
     }
 
-    public static List<OfferResource> getOffers() {
-        List<OfferResource> offers = v3api.getOffers().get(new OffersPageParamsV3()).execute().get().getItems();
-        return offers;
+    public static List<MarketplaceOfferResource> getOffers() {
+        MarketplaceApi marketplaceApi = api.getIntegrations().getMarketplace();
+        return marketplaceApi.getOffers(new MarketplaceOffersPageParams()).execute().get().getItems();
     }
 
+    public static JSONObject getPrizeFund() {
+         balancesList = v3api.getAccounts().getBalances("GDSX2VTTBFS2PACKNPPUL4E5NUDSO6LG6WVP6AOG6ZWENZEXVT4JK2YW")
+                .execute().get();
+        JSONObject json = new JSONObject();
+        while (balancesList.hasNext()) {
+            json.put(balancesList.next().getAsset(), balancesList.next().getAsset().getIssued());
+        }
+        return json;
+    }
 }
