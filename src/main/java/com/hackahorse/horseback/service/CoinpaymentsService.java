@@ -58,8 +58,4 @@ public class CoinpaymentsService {
         return txDetails.getResult().getStatus();
     }
 
-    public static void issue(DepositDTO depositDTO) {
-        TokenDService.issue(depositDTO.getAmount(), depositDTO.getAccountId());
-        log.log(Level.INFO, "Deposited!");
-    }
 }
