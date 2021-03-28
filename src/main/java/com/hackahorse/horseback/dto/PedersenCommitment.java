@@ -33,6 +33,7 @@ public class PedersenCommitment {
     public static class Witness {
         private BigInteger vote;
         private BigInteger nonce;
+        private String containerId;
 
         public Witness (BigInteger vote, BigInteger nonce) {
             this.vote = vote;
@@ -65,6 +66,13 @@ public class PedersenCommitment {
             return witness.getVote() + " " + witness.getNonce();
         }
 
+        public String getContainerId() {
+            return containerId;
+        }
+
+        public void setContainerId(String containerId) {
+            this.containerId = containerId;
+        }
     }
 
     public static Commitment generate (Witness witness){
