@@ -5,7 +5,9 @@ import com.hackahorse.horseback.dto.BetDTO;
 import com.hackahorse.horseback.dto.PedersenCommitment;
 import com.hackahorse.horseback.dto.Random;
 import com.hackahorse.horseback.util.PropsLoader;
+import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
+import com.mashape.unirest.http.exceptions.UnirestException;
 import org.json.JSONObject;
 import org.spongycastle.util.encoders.Base64;
 import org.tokend.sdk.api.TokenDApi;
@@ -27,6 +29,7 @@ import org.tokend.wallet.xdr.*;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.security.spec.ECPoint;
 import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -98,6 +101,7 @@ public class TokenDService {
                 .getJSONObject(0)
                 .getString("id");
         witness.setContainerId(containerId);
+        witness.setAccountId(bet.getAccountId());
         return new Gson().toJson(witness);
     }
 
@@ -147,6 +151,44 @@ public class TokenDService {
                 .build();
         tx.addSignature(defaultSignerRole);
         v3api.getTransactions().submit(tx, true).execute().get();
+    }
+
+    public static void payWin(String offerId, PedersenCommitment.Witness witness) throws UnirestException {
+
+        JSONObject jsonCommitment = new JSONObject(getCommitment(witness.getContainerId()))
+                .getJSONObject("commitment");
+        PedersenCommitment.Commitment commitment =
+                new PedersenCommitment.Commitment(new ECPoint(jsonCommitment.getBigInteger("x"),jsonCommitment.getBigInteger("y")));
+
+        if (!PedersenCommitment.verify(commitment,witness)) {
+            return;
+        } else {
+            var prizeFund = Double.valueOf(getPrizeFund());
+            var teamSum = Double.valueOf(String.valueOf(marketplaceApi.getOffer(offerId).execute().get().getBaseAmount()));
+            if (teamSum == 0) {
+                return;
+            }
+            var sellerId = "GCKPXLM2FJQOG44MMXQIJVOIJQDFHHQZMM2ODYZVVDPA5EXIA6NPFJUW";
+            var teamCoeff = (prizeFund/teamSum) + ((prizeFund/teamSum) * 0.1);
+            System.out.println(teamCoeff);
+            Unirest.setTimeouts(0, 0);
+            HttpResponse<String> response = Unirest.get(
+                    prop.getProperty("tokend_base_url") + "integrations/marketplace/buy_requests?include=request_details%2Crequest_details.quote_asset&filter[seller]="
+                            + sellerId + "&filter[offer]=" + offerId + "&filter[status]=paid")
+                    .header("signature", "keyId=\"GCKPXLM2FJQOG44MMXQIJVOIJQDFHHQZMM2ODYZVVDPA5EXIA6NPFJUW\",algorithm=\"ed25519-sha256\",headers=\"(request-target)\",signature=\"MpAqxDWWlHSBOWNOWVO9hfECloXYwYy/+N8W7n4MWN8xOZgBwf9KLUafbqAwQD+WNS1v2p4oGOOPIXExpCC4Dw==\"")
+                    .asString();
+            JSONObject jsonObject = new JSONObject(response.getBody());
+            var iterator = jsonObject.getJSONArray("data").iterator();
+            while (iterator.hasNext()) {
+                var json = new JSONObject(iterator.next().toString()).getJSONObject("attributes");
+                var userWin = (json.getDouble("amount") * teamCoeff) - json.getDouble("amount");
+                var user = json.getString("sender_account_id");
+                if (witness.getAccountId().equals(user)) {
+                    issue(userWin, user);
+                }
+                log.log(Level.INFO, "Issued " + userWin + " to " + user);
+            }
+        }
     }
 
     public static String getPrizeFund() {

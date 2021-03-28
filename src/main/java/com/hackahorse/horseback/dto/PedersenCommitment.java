@@ -34,6 +34,7 @@ public class PedersenCommitment {
         private BigInteger vote;
         private BigInteger nonce;
         private String containerId;
+        private String accountId;
 
         public Witness (BigInteger vote, BigInteger nonce) {
             this.vote = vote;
@@ -72,6 +73,14 @@ public class PedersenCommitment {
 
         public void setContainerId(String containerId) {
             this.containerId = containerId;
+        }
+
+        public String getAccountId() {
+            return accountId;
+        }
+
+        public void setAccountId(String accountId) {
+            this.accountId = accountId;
         }
     }
 

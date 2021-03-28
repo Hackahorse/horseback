@@ -1,7 +1,9 @@
 package com.hackahorse.horseback.controller;
 
 import com.hackahorse.horseback.dto.BetDTO;
+import com.hackahorse.horseback.dto.PedersenCommitment;
 import com.hackahorse.horseback.service.TokenDService;
+import com.mashape.unirest.http.exceptions.UnirestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -35,4 +37,8 @@ public class HorseController {
         return TokenDService.getCommitment(dataId);
     }
 
+    @GetMapping("/pay-win")
+    public void payWin(@RequestBody PedersenCommitment.Witness witness) throws UnirestException {
+        TokenDService.payWin("2", witness);
+    }
 }
