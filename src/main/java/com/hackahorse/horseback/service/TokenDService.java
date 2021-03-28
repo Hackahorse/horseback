@@ -7,7 +7,11 @@ import com.hackahorse.horseback.dto.Random;
 import com.hackahorse.horseback.util.PropsLoader;
 import com.mashape.unirest.http.Unirest;
 import org.json.JSONObject;
+import org.spongycastle.util.encoders.Base64;
 import org.tokend.sdk.api.TokenDApi;
+import org.tokend.sdk.api.base.model.operations.IssuanceOperation;
+import org.tokend.sdk.api.base.model.operations.PaymentOperation;
+import org.tokend.sdk.api.generated.resources.BalanceResource;
 import org.tokend.sdk.api.integrations.marketplace.MarketplaceApi;
 import org.tokend.sdk.api.integrations.marketplace.model.MarketplaceOfferResource;
 import org.tokend.sdk.api.integrations.marketplace.params.MarketplaceOffersPageParams;
@@ -21,6 +25,7 @@ import org.tokend.wallet.Transaction;
 import org.tokend.wallet.xdr.*;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Properties;
@@ -102,6 +107,46 @@ public class TokenDService {
                 .getJSONObject("attributes")
                 .getJSONObject("value");
         return jsonCommitment.toString();
+    }
+
+    public static void issue(double amount, String accountId) {
+
+        var networkParams = api.getGeneral().getSystemInfo().execute().get().toNetworkParams();
+
+        String balanceId = null;
+        for (int i = 0; i < v3api.getAccounts().getBalances(accountId).execute().get().size(); i++) {
+             balanceId = v3api.getAccounts().getBalances(accountId).execute().get().get(i)
+                    .getAsset().getId();
+            if (balanceId.equals("UAH")) {
+                balanceId = v3api.getAccounts().getBalances(accountId).execute().get().get(i).getId();
+                break;
+            }
+        }
+
+        System.out.println(balanceId);
+
+        var issuanceRequest = new IssuanceRequest(
+                "UAH",
+                api.getGeneral().getSystemInfo().execute().get().toNetworkParams().amountToPrecised(BigDecimal.valueOf(amount)),
+                PublicKeyFactory.fromBalanceId(balanceId),
+                "{}",
+                new Fee(0, 0, new Fee.FeeExt.EmptyVersion()),
+                new IssuanceRequest.IssuanceRequestExt.EmptyVersion()
+        );
+        var op = new CreateIssuanceRequestOp(
+                issuanceRequest,
+                Base64.toBase64String(Random.randomGen().toByteArray()),
+                0,
+                new CreateIssuanceRequestOp.CreateIssuanceRequestOpExt.EmptyVersion()
+        );
+        Transaction tx = new TransactionBuilder(
+                api.getGeneral().getSystemInfo().execute().get().toNetworkParams(),
+                defaultSignerRole.getAccountId()
+        )
+                .addOperation(new Operation.OperationBody.CreateIssuanceRequest(op))
+                .build();
+        tx.addSignature(defaultSignerRole);
+        v3api.getTransactions().submit(tx, true).execute().get();
     }
 
 //    public static JSONObject getPrizeFund() {
