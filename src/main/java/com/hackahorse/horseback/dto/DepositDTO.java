@@ -1,21 +1,21 @@
 package com.hackahorse.horseback.dto;
 
 public class DepositDTO {
-    private int amount;
+    private Double amount;
     private String currency;
     private String accountId;
 
-    public DepositDTO(int amount, String currency, String accountId) {
+    public DepositDTO(Double amount, String currency, String accountId) {
         this.amount = amount;
         this.currency = currency;
         this.accountId = accountId;
     }
 
-    public int getAmount() {
+    public Double getAmount() {
         return amount;
     }
 
-    public void setAmount(int amount) {
+    public void setAmount(Double amount) {
         this.amount = amount;
     }
 
