@@ -1,12 +1,14 @@
 package com.hackahorse.horseback.controller;
 
+import com.hackahorse.horseback.dto.BetDTO;
 import com.hackahorse.horseback.service.TokenDService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.tokend.sdk.api.generated.resources.BalanceResource;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import org.tokend.sdk.api.integrations.marketplace.model.MarketplaceOfferResource;
 
+import java.awt.image.BufferedImage;
 import java.util.List;
 
 @RestController
@@ -18,8 +20,19 @@ public class HorseController {
         return TokenDService.getOffers();
     }
 
-    @GetMapping("/prize-fund")
-    public String getPrizeFund() {
-        return TokenDService.getPrizeFund().toString();
+//    @GetMapping("/prize-fund")
+//    public String getPrizeFund() {
+//        return TokenDService.getPrizeFund().toString();
+//    }
+
+    @PostMapping(value = "/")
+    public String bet(@RequestBody BetDTO bet) throws Exception {
+        return TokenDService.bet(bet);
     }
+
+    @GetMapping("/commitment/{dataId:.+}")
+    public String getWitness(@PathVariable String dataId) {
+        return TokenDService.getCommitment(dataId);
+    }
+
 }
