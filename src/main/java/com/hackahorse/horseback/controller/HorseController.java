@@ -36,9 +36,4 @@ public class HorseController {
     public String getWitness(@PathVariable String dataId) {
         return TokenDService.getCommitment(dataId);
     }
-
-    @GetMapping("/pay-win")
-    public void payWin(@RequestBody PedersenCommitment.Witness witness) throws UnirestException {
-        TokenDService.payWin("2", witness);
-    }
 }
