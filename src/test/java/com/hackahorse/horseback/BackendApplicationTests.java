@@ -1,4 +1,4 @@
-package com.hackahorse.backend;
+package com.hackahorse.horseback;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
