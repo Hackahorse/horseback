@@ -149,13 +149,7 @@ public class TokenDService {
         v3api.getTransactions().submit(tx, true).execute().get();
     }
 
-//    public static JSONObject getPrizeFund() {
-//         balancesList = v3api.getAccounts().getBalances("GDSX2VTTBFS2PACKNPPUL4E5NUDSO6LG6WVP6AOG6ZWENZEXVT4JK2YW")
-//                .execute().get();
-//        JSONObject json = new JSONObject();
-//        while (balancesList.hasNext()) {
-//            json.put(balancesList.next().getAsset(), balancesList.next().getAsset().getIssued());
-//        }
-//        return json;
-//    }
+    public static String getPrizeFund() {
+        return String.valueOf(v3api.getAssets().getById("UAH", null).execute().get().getIssued().doubleValue());
+    }
 }

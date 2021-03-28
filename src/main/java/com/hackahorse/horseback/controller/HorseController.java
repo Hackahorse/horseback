@@ -20,10 +20,10 @@ public class HorseController {
         return TokenDService.getOffers();
     }
 
-//    @GetMapping("/prize-fund")
-//    public String getPrizeFund() {
-//        return TokenDService.getPrizeFund().toString();
-//    }
+    @GetMapping("/prize-fund")
+    public String getPrizeFund() {
+        return TokenDService.getPrizeFund().toString();
+    }
 
     @PostMapping(value = "/")
     public String bet(@RequestBody BetDTO bet) throws Exception {

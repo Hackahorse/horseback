@@ -14,8 +14,4 @@ public class CoinpaymentsController {
     public CryptoPaymentDTO deposit(@RequestBody DepositDTO depositDTO) throws IOException {
         return CoinpaymentsService.deposit(depositDTO);
     }
-    @PostMapping("/issue")
-    public void issue(@RequestBody DepositDTO depositDTO) {
-        CoinpaymentsService.issue(depositDTO);
-    }
 }
